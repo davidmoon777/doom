@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Backrooms FPS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+
+<div id="uiPanel">
+  <div class="sliderContainer">
+    <label>Walk Speed: <span id="walkSpeedVal">3</span></label>
+    <input type="range" id="walkSpeed" min="1" max="10" step="0.1" value="3">
+  </div>
+  <div class="sliderContainer">
+    <label>Run Speed: <span id="runSpeedVal">6</span></label>
+    <input type="range" id="runSpeed" min="1" max="15" step="0.1" value="6">
+  </div>
+  <div class="sliderContainer">
+    <label>Jump Strength: <span id="jumpVal">10</span></label>
+    <input type="range" id="jump" min="1" max="20" step="0.1" value="10">
+  </div>
+  <div class="sliderContainer">
+    <label>FOV: <span id="fovVal">30</span></label>
+    <input type="range" id="fov" min="10" max="90" step="1" value="30">
+  </div>
+  <div class="sliderContainer">
+    <label>Wall Spawn Rate: <span id="wallRateVal">0.2</span></label>
+    <input type="range" id="wallRate" min="0" max="1" step="0.01" value="0.2">
+  </div>
+</div>
+
+<div id="staminaBar"><div id="staminaFill"></div></div>
+
+<div id="jumpBtn" class="touchButton" style="bottom:80px; right:20px;">J</div>
+<div id="crouchBtn" class="touchButton" style="bottom:150px; right:20px;">C</div>
+<div id="runBtn" class="touchButton" style="bottom:220px; right:20px;">R</div>
+
+<script>
+// -------- 설정 --------
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const TILE_SIZE = 100;
+const MAP_WIDTH = 50;
+const MAP_HEIGHT = 50;
+
+let settings = {
+  walkSpeed: 3,
+  runSpeed: 6,
+  jumpStrength: 10,
+  fov: 30*Math.PI/180,
+  wallSpawnRate: 0.2
+};
+
+// 슬라이더 연동
+['walkSpeed','runSpeed','jump','fov','wallRate'].forEach(id=>{
+  const slider=document.getElementById(id);
+  slider.addEventListener('input',()=>{
+    let val=parseFloat(slider.value);
+    if(id==='walkSpeed'){ settings.walkSpeed=val; document.getElementById('walkSpeedVal').innerText=val; }
+    if(id==='runSpeed'){ settings.runSpeed=val; document.getElementById('runSpeedVal').innerText=val; }
+    if(id==='jump'){ settings.jumpStrength=val; document.getElementById('jumpVal').innerText=val; }
+    if(id==='fov'){ settings.fov=val*Math.PI/180; document.getElementById('fovVal').innerText=val; }
+    if(id==='wallRate'){ settings.wallSpawnRate=val; document.getElementById('wallRateVal').innerText=val; generateMap(); }
+  });
+});
+
+// -------- 맵 생성 --------
+let gameMap=[];
+function generateMap(){
+  gameMap=[];
+  for(let y=0;y<MAP_HEIGHT;y++){
+    let row=[];
+    for(let x=0;x<MAP_WIDTH;x++){
+      if(x===0||y===0||x===MAP_WIDTH-1||y===MAP_HEIGHT-1){
+        row.push(1);
+      }else{
+        row.push(Math.random()<settings.wallSpawnRate?1:0);
+      }
+    }
+    gameMap.push(row);
+  }
+}
+generateMap();
+
+// -------- 플레이어 --------
+let player={x:150,y:150,angle:0,height:0,vertVel:0,isCrouch:false,isRunning:false,isJumping:false};
+let stamina=100;
+const maxStamina=100;
+
+// 키 입력
+let keys={};
+document.addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true; });
+document.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+
+// 포인터 이동
+canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+canvas.onclick = ()=>canvas.requestPointerLock();
+document.addEventListener('mousemove',e=>{
+  if(document.pointerLockElement===canvas){
+    player.angle+=e.movementX*0.003;
+  }
+});
+
+// 모바일 터치
+let touchJoystick={active:false,startX:0,startY:0,dx:0,dy:0};
+canvas.addEventListener('touchstart',e=>{
+  const t=e.touches[0];
+  if(t.clientX<canvas.width/2){ touchJoystick.active=true; touchJoystick.startX=t.clientX; touchJoystick.startY=t.clientY; }
+});
+canvas.addEventListener('touchmove',e=>{
+  if(touchJoystick.active){
+    const t=e.touches[0];
+    touchJoystick.dx=t.clientX-touchJoystick.startX;
+    touchJoystick.dy=t.clientY-touchJoystick.startY;
+  } else { const t=e.touches[0]; player.angle+=t.movementX*0.005||0; }
+});
+canvas.addEventListener('touchend',e=>{ touchJoystick.active=false; touchJoystick.dx=0; touchJoystick.dy=0; });
+
+// 버튼
+document.getElementById('jumpBtn').addEventListener('touchstart',()=>{ if(!player.isJumping){ player.vertVel=-settings.jumpStrength; player.isJumping=true; }});
+document.getElementById('crouchBtn').addEventListener('touchstart',()=>{ player.isCrouch=true; });
+document.getElementById('crouchBtn').addEventListener('touchend',()=>{ player.isCrouch=false; });
+document.getElementById('runBtn').addEventListener('touchstart',()=>{ player.isRunning=true; });
+document.getElementById('runBtn').addEventListener('touchend',()=>{ player.isRunning=false; });
+
+// 충돌 체크
+function checkCollision(x,y){
+  const mapX=Math.floor(x/TILE_SIZE);
+  const mapY=Math.floor(y/TILE_SIZE);
+  if(mapX<0||mapY<0||mapX>=MAP_WIDTH||mapY>=MAP_HEIGHT) return true;
+  return gameMap[mapY][mapX]===1;
+}
+
+// 레이캐스팅 + 벽 텍스처
+function castRays(){
+  const numRays=120;
+  const halfFov=settings.fov/2;
+  const deltaAngle=settings.fov/numRays;
+  const startAngle=player.angle-halfFov;
+  for(let r=0;r<numRays;r++){
+    const angle=startAngle+r*deltaAngle;
+    for(let depth=1;depth<800;depth++){
+      const tx=player.x+Math.cos(angle)*depth;
+      const ty=player.y+Math.sin(angle)*depth;
+      const mapX=Math.floor(tx/TILE_SIZE);
+      const mapY=Math.floor(ty/TILE_SIZE);
+      if(mapX<0||mapY<0||mapX>=MAP_WIDTH||mapY>=MAP_HEIGHT) break;
+      if(gameMap[mapY][mapX]===1){
+        let wallH=Math.min(8000/depth,canvas.height);
+        let shade=40+Math.floor(Math.random()*20);
+        ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;
+        ctx.beginPath();
+        ctx.moveTo(r*(canvas.width/numRays),canvas.height/2 - wallH/2 - player.height);
+        ctx.lineTo(r*(canvas.width/numRays),canvas.height/2 + wallH/2 - player.height);
+        ctx.stroke();
+        break;
+      }
+    }
+  }
+}
+
+// 게임 루프
+function loop(){
+  requestAnimationFrame(loop);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // 이동
+  let speed=settings.walkSpeed;
+  if(keys['shift']||player.isRunning){ speed=settings.runSpeed; stamina-=0.8; } else stamina+=0.4;
+  if(stamina>maxStamina) stamina=maxStamina; if(stamina<0) stamina=0;
+
+  // 모바일 조이스틱
+  if(touchJoystick.active){
+    const mag=Math.sqrt(touchJoystick.dx**2+touchJoystick.dy**2);
+    const normX=touchJoystick.dx/mag||0;
+    const normY=touchJoystick.dy/mag||0;
+    let newX=player.x+normX*speed;
+    let newY=player.y+normY*speed;
+    if(!checkCollision(newX,player.y)) player.x=newX;
+    if(!checkCollision(player.x,newY)) player.y=newY;
+  }
+
+  // 키보드 이동
+  let newX=player.x, newY=player.y;
+  if(keys['w']){ newX+=Math.cos(player.angle)*speed; newY+=Math.sin(player.angle)*speed; }
+  if(keys['s']){ newX-=Math.cos(player.angle)*speed; newY-=Math.sin(player.angle)*speed; }
+  if(keys['a']){ newX+=Math.cos(player.angle-Math.PI/2)*speed; newY+=Math.sin(player.angle-Math.PI/2)*speed; }
+  if(keys['d']){ newX+=Math.cos(player.angle+Math.PI/2)*speed; newY+=Math.sin(player.angle+Math.PI/2)*speed; }
+  if(!checkCollision(newX,player.y)) player.x=newX;
+  if(!checkCollision(player.x,newY)) player.y=newY;
+
+  // 점프/중력
+  if(player.isJumping){ player.vertVel+=0.5; player.height+=player.vertVel; if(player.height>0){ player.height=0; player.vertVel=0; player.isJumping=false; }}
+  if(player.isCrouch) player.height=20; else if(!player.isJumping) player.height=0;
+
+  castRays();
+
+  // 스테미나
+  document.getElementById('staminaFill').style.width=(stamina/maxStamina*100)+'%';
+}
+loop();
+</script>
+</body>
+</html>
