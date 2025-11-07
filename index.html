@@ -1,162 +1,356 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Backrooms FPS</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Backrooms FPS — Neon Dev UI</title>
+<style>
+  :root{
+    --bg:#050406;
+    --panel: rgba(6,6,10,0.65);
+    --neon: #7afcff;
+    --accent: #9b59ff;
+    --muted:#bdbdbd;
+    --white:#edf2f7;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  canvas{display:block;width:100vw;height:100vh;}
+  /* UI panel (right) */
+  #settingsPanel{
+    position:fixed; right:18px; top:18px; width:360px; max-width:92vw; height:calc(100vh - 36px);
+    background: linear-gradient(180deg, rgba(10,10,12,0.85), rgba(8,8,10,0.7));
+    border:1px solid rgba(122,252,255,0.08);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 18px rgba(155,89,255,0.06) inset;
+    backdrop-filter: blur(8px);
+    border-radius:12px; padding:14px; color:var(--muted); display:flex; flex-direction:column;
+  }
+  #settingsHeader{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  #settingsHeader h2{margin:0;color:var(--white);font-size:16px;letter-spacing:0.6px}
+  #settingsHeader p{margin:0;font-size:12px;color:var(--muted)}
+  .panel-scroll{overflow:auto;padding-right:6px}
+  .settingRow{display:flex;align-items:center;justify-content:space-between;padding:8px 6px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));}
+  .settingLeft{display:flex;flex-direction:column;gap:6px}
+  .settingName{color:var(--white);font-weight:600;font-size:13px}
+  .settingDesc{font-size:11px;color:#98a0a6}
+  .settingControl{display:flex;align-items:center;gap:8px}
+  .btnSmall{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:var(--neon);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow: 0 2px 10px rgba(0,0,0,0.6);cursor:pointer}
+  .valueBox{min-width:80px;text-align:center;color:var(--white);font-weight:700;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04))}
+  .footer{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .iotBtn{background:linear-gradient(90deg,var(--neon),var(--accent));color:#041018;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 6px 26px rgba(155,89,255,0.08)}
+  .smallText{font-size:12px;color:#9aa4ad}
+  /* Gear button */
+  #gearBtn{position:fixed;right:22px;bottom:18px;width:56px;height:56px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--neon),var(--accent));color:#041018;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 40px rgba(155,89,255,0.12)}
+  /* Touch buttons */
+  .touchButton{position:fixed; width:64px;height:64px;border-radius:50%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:var(--white); display:flex;align-items:center;justify-content:center; font-weight:800; user-select:none; touch-action:none}
+  #jumpBtn{right:20px;bottom:100px}
+  #crouchBtn{right:20px;bottom:180px}
+  #runBtn{right:20px;bottom:260px}
+  /* Stamina bar */
+  #staminaBar{position:fixed;left:18px;top:18px;width:240px;height:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04))}
+  #staminaFill{height:100%;background:linear-gradient(90deg,#2ff57a,#8be39c);width:100%}
+  /* responsive tweaks */
+  @media (max-width:700px){
+    #settingsPanel{width:92vw; right:4vw; top:6px; height:calc(60vh); border-radius:14px}
+    #gearBtn{right:6vw; bottom:8px}
+    .touchButton{width:56px;height:56px}
+    #staminaBar{left:10px;top:10px;width:40vw}
+  }
+</style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
 
-<div id="uiPanel">
-  <div class="sliderContainer">
-    <label>Walk Speed: <span id="walkSpeedVal">3</span></label>
-    <input type="range" id="walkSpeed" min="1" max="10" step="0.1" value="3">
+<!-- Neon Settings Panel -->
+<div id="settingsPanel" aria-hidden="false">
+  <div id="settingsHeader">
+    <div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(90deg,var(--neon),var(--accent));display:flex;align-items:center;justify-content:center;color:#041018;font-weight:800">DEV</div>
+    <div style="flex:1">
+      <h2>Developer Settings</h2>
+      <p class="smallText">Real-time adjustments — changes apply instantly</p>
+    </div>
+    <div style="text-align:right">
+      <div class="smallText">Mode: <strong style="color:var(--neon);">1st Person</strong></div>
+      <div class="smallText">Platform: Web</div>
+    </div>
   </div>
-  <div class="sliderContainer">
-    <label>Run Speed: <span id="runSpeedVal">6</span></label>
-    <input type="range" id="runSpeed" min="1" max="15" step="0.1" value="6">
+
+  <div class="panel-scroll" style="margin-top:6px; padding-right:6px;">
+    <!-- Walk Speed -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Walk Speed</div>
+        <div class="settingDesc">Normal walking speed (affects movement per frame)</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="walk_speed_dec">−</button>
+        <div class="valueBox" id="val-walk">3.0</div>
+        <button class="btnSmall" data-action="walk_speed_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Run Speed -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Run Speed</div>
+        <div class="settingDesc">Speed while running (consumes stamina)</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="run_speed_dec">−</button>
+        <div class="valueBox" id="val-run">6.0</div>
+        <button class="btnSmall" data-action="run_speed_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Jump Strength -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Jump Strength</div>
+        <div class="settingDesc">Initial vertical velocity when pressing jump</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="jump_dec">−</button>
+        <div class="valueBox" id="val-jump">10.0</div>
+        <button class="btnSmall" data-action="jump_inc">+</button>
+      </div>
+    </div>
+
+    <!-- FOV -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">FOV (Field of View)</div>
+        <div class="settingDesc">Narrow = claustrophobic; Wide = expansive</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="fov_dec">−</button>
+        <div class="valueBox" id="val-fov">30°</div>
+        <button class="btnSmall" data-action="fov_inc">+</button>
+      </div>
+    </div>
+
+    <!-- View Distance -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">View Distance</div>
+        <div class="settingDesc">How far rays are cast (increase to see farther)</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="viewdist_dec">−</button>
+        <div class="valueBox" id="val-viewdist">800</div>
+        <button class="btnSmall" data-action="viewdist_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Brightness -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Map Brightness</div>
+        <div class="settingDesc">Overall scene brightness (0 = pitch black)</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="bright_dec">−</button>
+        <div class="valueBox" id="val-bright">0.2</div>
+        <button class="btnSmall" data-action="bright_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Wall Spawn Rate -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Wall Spawn Rate</div>
+        <div class="settingDesc">Probability of a tile becoming a wall (0~1)</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="spawn_dec">−</button>
+        <div class="valueBox" id="val-spawn">0.20</div>
+        <button class="btnSmall" data-action="spawn_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Mouse / Touch Sensitivity -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Look Sensitivity</div>
+        <div class="settingDesc">Mouse & touch look sensitivity</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="sens_dec">−</button>
+        <div class="valueBox" id="val-sens">0.003</div>
+        <button class="btnSmall" data-action="sens_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Stamina Drain -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Stamina Drain</div>
+        <div class="settingDesc">How fast stamina is consumed while running</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="drain_dec">−</button>
+        <div class="valueBox" id="val-drain">0.80</div>
+        <button class="btnSmall" data-action="drain_inc">+</button>
+      </div>
+    </div>
+
+    <!-- Stamina Recover -->
+    <div class="settingRow">
+      <div class="settingLeft">
+        <div class="settingName">Stamina Recover</div>
+        <div class="settingDesc">How fast stamina recovers when not running</div>
+      </div>
+      <div class="settingControl">
+        <button class="btnSmall" data-action="rec_dec">−</button>
+        <div class="valueBox" id="val-rec">0.40</div>
+        <button class="btnSmall" data-action="rec_inc">+</button>
+      </div>
+    </div>
+
   </div>
-  <div class="sliderContainer">
-    <label>Jump Strength: <span id="jumpVal">10</span></label>
-    <input type="range" id="jump" min="1" max="20" step="0.1" value="10">
-  </div>
-  <div class="sliderContainer">
-    <label>FOV: <span id="fovVal">30</span></label>
-    <input type="range" id="fov" min="10" max="90" step="1" value="30">
-  </div>
-  <div class="sliderContainer">
-    <label>Wall Spawn Rate: <span id="wallRateVal">0.2</span></label>
-    <input type="range" id="wallRate" min="0" max="1" step="0.01" value="0.2">
+
+  <div class="footer" style="margin-top:10px">
+    <div style="display:flex;flex-direction:column">
+      <div class="smallText">Current Map:</div>
+      <div style="color:var(--neon);font-weight:700">Randomized Backroom</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <button id="regenMap" class="iotBtn">Regenerate Map</button>
+      <button id="closePanel" class="iotBtn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)">Close</button>
+    </div>
   </div>
 </div>
 
-<div id="staminaBar"><div id="staminaFill"></div></div>
+<!-- Gear toggle -->
+<button id="gearBtn" title="Settings">⚙️</button>
 
-<div id="jumpBtn" class="touchButton" style="bottom:80px; right:20px;">J</div>
-<div id="crouchBtn" class="touchButton" style="bottom:150px; right:20px;">C</div>
-<div id="runBtn" class="touchButton" style="bottom:220px; right:20px;">R</div>
+<!-- Touch controls -->
+<div id="staminaBar"><div id="staminaFill"></div></div>
+<div id="jumpBtn" class="touchButton">J</div>
+<div id="crouchBtn" class="touchButton">C</div>
+<div id="runBtn" class="touchButton">R</div>
 
 <script>
-// -------- 설정 --------
+/* =========================
+   Core game + UI wiring
+   ========================= */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resizeCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-const TILE_SIZE = 100;
-const MAP_WIDTH = 50;
-const MAP_HEIGHT = 50;
-
-let settings = {
-  walkSpeed: 3,
-  runSpeed: 6,
-  jumpStrength: 10,
-  fov: 30*Math.PI/180,
-  wallSpawnRate: 0.2
+/* ----- Settings (centralized) ----- */
+const STATE = {
+  walkSpeed: 3.0,
+  runSpeed: 6.0,
+  jumpStrength: 10.0,
+  fovDeg: 30,
+  viewDist: 800,
+  brightness: 0.2,
+  spawnRate: 0.2,
+  sensitivity: 0.003,
+  staminaDrain: 0.8,
+  staminaRecover: 0.4
 };
 
-// 슬라이더 연동
-['walkSpeed','runSpeed','jump','fov','wallRate'].forEach(id=>{
-  const slider=document.getElementById(id);
-  slider.addEventListener('input',()=>{
-    let val=parseFloat(slider.value);
-    if(id==='walkSpeed'){ settings.walkSpeed=val; document.getElementById('walkSpeedVal').innerText=val; }
-    if(id==='runSpeed'){ settings.runSpeed=val; document.getElementById('runSpeedVal').innerText=val; }
-    if(id==='jump'){ settings.jumpStrength=val; document.getElementById('jumpVal').innerText=val; }
-    if(id==='fov'){ settings.fov=val*Math.PI/180; document.getElementById('fovVal').innerText=val; }
-    if(id==='wallRate'){ settings.wallSpawnRate=val; document.getElementById('wallRateVal').innerText=val; generateMap(); }
-  });
-});
-
-// -------- 맵 생성 --------
-let gameMap=[];
+/* ----- Map generation ----- */
+const TILE = 100;
+const MAP_W = 50, MAP_H = 50;
+let gameMap = [];
 function generateMap(){
-  gameMap=[];
-  for(let y=0;y<MAP_HEIGHT;y++){
-    let row=[];
-    for(let x=0;x<MAP_WIDTH;x++){
-      if(x===0||y===0||x===MAP_WIDTH-1||y===MAP_HEIGHT-1){
-        row.push(1);
-      }else{
-        row.push(Math.random()<settings.wallSpawnRate?1:0);
-      }
+  gameMap=[]
+  for(let y=0;y<MAP_H;y++){
+    const row=[]
+    for(let x=0;x<MAP_W;x++){
+      if(x===0||y===0||x===MAP_W-1||y===MAP_H-1){ row.push(1); continue; }
+      row.push(Math.random() < STATE.spawnRate ? 1 : 0);
     }
     gameMap.push(row);
   }
 }
 generateMap();
 
-// -------- 플레이어 --------
-let player={x:150,y:150,angle:0,height:0,vertVel:0,isCrouch:false,isRunning:false,isJumping:false};
-let stamina=100;
-const maxStamina=100;
+/* ----- Player ----- */
+const player = { x:150, y:150, angle:0, height:0, vertVel:0, isCrouch:false, isRunning:false, isJumping:false };
+let stamina = 100; const maxStamina = 100;
 
-// 키 입력
-let keys={};
-document.addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true; });
-document.addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+/* ----- Input ----- */
+let keys = {};
+document.addEventListener('keydown', (e)=> keys[e.key.toLowerCase()] = true );
+document.addEventListener('keyup', (e)=> keys[e.key.toLowerCase()] = false );
 
-// 포인터 이동
-canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-canvas.onclick = ()=>canvas.requestPointerLock();
-document.addEventListener('mousemove',e=>{
-  if(document.pointerLockElement===canvas){
-    player.angle+=e.movementX*0.003;
+/* Pointer lock & mouse */
+canvas.onclick = ()=> { if(document.pointerLockElement!==canvas) canvas.requestPointerLock?.(); };
+document.addEventListener('mousemove', (e)=>{
+  if(document.pointerLockElement===canvas) player.angle += e.movementX * STATE.sensitivity;
+});
+
+/* Touch joystick for movement (left half) and right-side look */
+let touch = { active:false, startX:0, startY:0, dx:0, dy:0 };
+canvas.addEventListener('touchstart', (ev)=>{
+  const t = ev.touches[0];
+  if(t.clientX < innerWidth/2){ touch.active=true; touch.startX=t.clientX; touch.startY=t.clientY; }
+});
+canvas.addEventListener('touchmove', (ev)=>{
+  ev.preventDefault();
+  const t = ev.touches[0];
+  if(t && touch.active){
+    touch.dx = t.clientX - touch.startX;
+    touch.dy = t.clientY - touch.startY;
+  } else if(t){
+    // right-side drag -> emulate look (use delta from touchmove event if available)
+    // mobile browsers don't provide movementX reliably; use simple diff
+    // store prev
+    if(typeof canvas._lastTouchX !== 'undefined'){
+      const dx = t.clientX - canvas._lastTouchX;
+      player.angle += dx * STATE.sensitivity * 1.6; // amplify for touch
+    }
+    canvas._lastTouchX = t.clientX;
   }
-});
+}, {passive:false});
+canvas.addEventListener('touchend', (ev)=>{ touch.active=false; touch.dx=0; touch.dy=0; canvas._lastTouchX = undefined; });
 
-// 모바일 터치
-let touchJoystick={active:false,startX:0,startY:0,dx:0,dy:0};
-canvas.addEventListener('touchstart',e=>{
-  const t=e.touches[0];
-  if(t.clientX<canvas.width/2){ touchJoystick.active=true; touchJoystick.startX=t.clientX; touchJoystick.startY=t.clientY; }
-});
-canvas.addEventListener('touchmove',e=>{
-  if(touchJoystick.active){
-    const t=e.touches[0];
-    touchJoystick.dx=t.clientX-touchJoystick.startX;
-    touchJoystick.dy=t.clientY-touchJoystick.startY;
-  } else { const t=e.touches[0]; player.angle+=t.movementX*0.005||0; }
-});
-canvas.addEventListener('touchend',e=>{ touchJoystick.active=false; touchJoystick.dx=0; touchJoystick.dy=0; });
+/* Touch buttons */
+const jumpBtn = document.getElementById('jumpBtn');
+const crouchBtn = document.getElementById('crouchBtn');
+const runBtn = document.getElementById('runBtn');
+jumpBtn.addEventListener('touchstart', ()=>{ if(!player.isJumping){ player.vertVel = -STATE.jumpStrength; player.isJumping = true; } });
+crouchBtn.addEventListener('touchstart', ()=> player.isCrouch = true );
+crouchBtn.addEventListener('touchend', ()=> player.isCrouch = false );
+runBtn.addEventListener('touchstart', ()=> player.isRunning = true );
+runBtn.addEventListener('touchend', ()=> player.isRunning = false );
 
-// 버튼
-document.getElementById('jumpBtn').addEventListener('touchstart',()=>{ if(!player.isJumping){ player.vertVel=-settings.jumpStrength; player.isJumping=true; }});
-document.getElementById('crouchBtn').addEventListener('touchstart',()=>{ player.isCrouch=true; });
-document.getElementById('crouchBtn').addEventListener('touchend',()=>{ player.isCrouch=false; });
-document.getElementById('runBtn').addEventListener('touchstart',()=>{ player.isRunning=true; });
-document.getElementById('runBtn').addEventListener('touchend',()=>{ player.isRunning=false; });
-
-// 충돌 체크
+/* ----- Collision ----- */
 function checkCollision(x,y){
-  const mapX=Math.floor(x/TILE_SIZE);
-  const mapY=Math.floor(y/TILE_SIZE);
-  if(mapX<0||mapY<0||mapX>=MAP_WIDTH||mapY>=MAP_HEIGHT) return true;
-  return gameMap[mapY][mapX]===1;
+  const mx = Math.floor(x/TILE), my = Math.floor(y/TILE);
+  if(mx<0||my<0||mx>=MAP_W||my>=MAP_H) return true;
+  return gameMap[my][mx] === 1;
 }
 
-// 레이캐스팅 + 벽 텍스처
+/* ----- Raycast render with brightness & viewDist ---- */
 function castRays(){
-  const numRays=120;
-  const halfFov=settings.fov/2;
-  const deltaAngle=settings.fov/numRays;
-  const startAngle=player.angle-halfFov;
+  const numRays = 140;
+  const fovRad = STATE.fovDeg * Math.PI/180;
+  const half = fovRad/2;
+  const delta = fovRad/numRays;
+  const start = player.angle - half;
+  const maxDepth = STATE.viewDist;
   for(let r=0;r<numRays;r++){
-    const angle=startAngle+r*deltaAngle;
-    for(let depth=1;depth<800;depth++){
-      const tx=player.x+Math.cos(angle)*depth;
-      const ty=player.y+Math.sin(angle)*depth;
-      const mapX=Math.floor(tx/TILE_SIZE);
-      const mapY=Math.floor(ty/TILE_SIZE);
-      if(mapX<0||mapY<0||mapX>=MAP_WIDTH||mapY>=MAP_HEIGHT) break;
-      if(gameMap[mapY][mapX]===1){
-        let wallH=Math.min(8000/depth,canvas.height);
-        let shade=40+Math.floor(Math.random()*20);
-        ctx.strokeStyle=`rgb(${shade},${shade},${shade})`;
+    const ang = start + r*delta;
+    for(let depth=1; depth<maxDepth; depth+=0.6){
+      const tx = player.x + Math.cos(ang)*depth;
+      const ty = player.y + Math.sin(ang)*depth;
+      const mx = Math.floor(tx/TILE), my = Math.floor(ty/TILE);
+      if(mx<0||my<0||mx>=MAP_W||my>=MAP_H) break;
+      if(gameMap[my][mx] === 1){
+        const wallH = Math.min( (innerHeight*1.6) / (depth*0.02 + 0.0001) , innerHeight);
+        // shade via brightness + depth
+        const base = Math.max(8, Math.floor( (STATE.brightness*180) - depth*0.06 ));
+        const shade = Math.max(6, Math.min(255, base + ((mx+my)%3)*6 + Math.floor(Math.random()*6) ));
+        ctx.strokeStyle = `rgb(${shade},${shade},${shade})`;
         ctx.beginPath();
-        ctx.moveTo(r*(canvas.width/numRays),canvas.height/2 - wallH/2 - player.height);
-        ctx.lineTo(r*(canvas.width/numRays),canvas.height/2 + wallH/2 - player.height);
+        const x = r*(canvas.width/numRays);
+        ctx.moveTo(x, canvas.height/2 - wallH/2 - player.height);
+        ctx.lineTo(x, canvas.height/2 + wallH/2 - player.height);
         ctx.stroke();
         break;
       }
@@ -164,46 +358,131 @@ function castRays(){
   }
 }
 
-// 게임 루프
+/* ----- UI wiring: buttons +/- and values ----- */
+function $(sel){ return document.querySelector(sel); }
+function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+
+const mappings = {
+  "walk_speed_inc": ()=> { STATE.walkSpeed = +(STATE.walkSpeed + 0.1).toFixed(2); $("#val-walk").innerText = STATE.walkSpeed.toFixed(2); },
+  "walk_speed_dec": ()=> { STATE.walkSpeed = Math.max(0.1, +(STATE.walkSpeed - 0.1).toFixed(2)); $("#val-walk").innerText = STATE.walkSpeed.toFixed(2); },
+
+  "run_speed_inc": ()=> { STATE.runSpeed = +(STATE.runSpeed + 0.2).toFixed(2); $("#val-run").innerText = STATE.runSpeed.toFixed(2); },
+  "run_speed_dec": ()=> { STATE.runSpeed = Math.max(0.2, +(STATE.runSpeed - 0.2).toFixed(2)); $("#val-run").innerText = STATE.runSpeed.toFixed(2); },
+
+  "jump_inc": ()=> { STATE.jumpStrength = +(STATE.jumpStrength + 0.5).toFixed(2); $("#val-jump").innerText = STATE.jumpStrength.toFixed(2); },
+  "jump_dec": ()=> { STATE.jumpStrength = Math.max(0.5, +(STATE.jumpStrength - 0.5).toFixed(2)); $("#val-jump").innerText = STATE.jumpStrength.toFixed(2); },
+
+  "fov_inc": ()=> { STATE.fovDeg = Math.min(120, STATE.fovDeg + 1); $("#val-fov").innerText = STATE.fovDeg + "°"; },
+  "fov_dec": ()=> { STATE.fovDeg = Math.max(8, STATE.fovDeg - 1); $("#val-fov").innerText = STATE.fovDeg + "°"; },
+
+  "viewdist_inc": ()=> { STATE.viewDist = Math.min(3000, STATE.viewDist + 50); $("#val-viewdist").innerText = STATE.viewDist; },
+  "viewdist_dec": ()=> { STATE.viewDist = Math.max(200, STATE.viewDist - 50); $("#val-viewdist").innerText = STATE.viewDist; },
+
+  "bright_inc": ()=> { STATE.brightness = Math.min(1.0, +(STATE.brightness + 0.02).toFixed(2)); $("#val-bright").innerText = STATE.brightness.toFixed(2); },
+  "bright_dec": ()=> { STATE.brightness = Math.max(0, +(STATE.brightness - 0.02).toFixed(2)); $("#val-bright").innerText = STATE.brightness.toFixed(2); },
+
+  "spawn_inc": ()=> { STATE.spawnRate = Math.min(0.95, +( (STATE.spawnRate || 0.2) + 0.01 ).toFixed(2)); $("#val-spawn").innerText = STATE.spawnRate.toFixed(2); generateMap(); },
+  "spawn_dec": ()=> { STATE.spawnRate = Math.max(0, +( (STATE.spawnRate || 0.2) - 0.01 ).toFixed(2)); $("#val-spawn").innerText = STATE.spawnRate.toFixed(2); generateMap(); },
+
+  "sens_inc": ()=> { STATE.sensitivity = +(STATE.sensitivity + 0.0005).toFixed(4); $("#val-sens").innerText = STATE.sensitivity.toFixed(3); },
+  "sens_dec": ()=> { STATE.sensitivity = Math.max(0.001, +(STATE.sensitivity - 0.0005).toFixed(4)); $("#val-sens").innerText = STATE.sensitivity.toFixed(3); },
+
+  "drain_inc": ()=> { STATE.staminaDrain = +(STATE.staminaDrain + 0.05).toFixed(2); $("#val-drain").innerText = STATE.staminaDrain.toFixed(2); },
+  "drain_dec": ()=> { STATE.staminaDrain = Math.max(0.01, +(STATE.staminaDrain - 0.05).toFixed(2)); $("#val-drain").innerText = STATE.staminaDrain.toFixed(2); },
+
+  "rec_inc": ()=> { STATE.staminaRecover = +(STATE.staminaRecover + 0.05).toFixed(2); $("#val-rec").innerText = STATE.staminaRecover.toFixed(2); },
+  "rec_dec": ()=> { STATE.staminaRecover = Math.max(0.01, +(STATE.staminaRecover - 0.05).toFixed(2)); $("#val-rec").innerText = STATE.staminaRecover.toFixed(2); },
+};
+
+/* attach handlers */
+$all('.btnSmall').forEach(btn=>{
+  const action = btn.dataset.action;
+  btn.addEventListener('click', ()=>{
+    // map dataset like "walk_speed_inc" -> mapping key "walk_speed_inc" (convert underscore)
+    const key = action.replace(/-/g,'_');
+    // normalize naming differences (our mapping uses underscores and names like walk_speed_inc)
+    const mapKey = key;
+    if(mappings[mapKey]) mappings[mapKey]();
+    // Also copy some values into STATE for legacy names
+    STATE.sensitivity = STATE.sensitivity || 0.003;
+    // apply some mirrored values
+    STATE.walkSpeed = STATE.walkSpeed || 3.0;
+    STATE.runSpeed = STATE.runSpeed || 6.0;
+  });
+});
+
+/* gear open/close */
+const panel = document.getElementById('settingsPanel');
+const gear = document.getElementById('gearBtn');
+gear.addEventListener('click', ()=> {
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'flex';
+});
+document.getElementById('closePanel').addEventListener('click', ()=> panel.style.display='none');
+document.getElementById('regenMap').addEventListener('click', ()=> generateMap());
+
+/* initialize display values */
+$("#val-walk").innerText = STATE.walkSpeed.toFixed(2);
+$("#val-run").innerText = STATE.runSpeed.toFixed(2);
+$("#val-jump").innerText = STATE.jumpStrength.toFixed(2);
+$("#val-fov").innerText = STATE.fovDeg + "°";
+$("#val-viewdist").innerText = STATE.viewDist;
+$("#val-bright").innerText = (STATE.brightness||0.2).toFixed(2);
+STATE.spawnRate = STATE.spawnRate || STATE.spawnRate === 0 ? STATE.spawnRate : 0.2;
+$("#val-spawn").innerText = STATE.spawnRate.toFixed(2);
+STATE.sensitivity = STATE.sensitivity || 0.003;
+$("#val-sens").innerText = STATE.sensitivity.toFixed(3);
+STATE.staminaDrain = STATE.staminaDrain || 0.8; $("#val-drain").innerText = STATE.staminaDrain.toFixed(2);
+STATE.staminaRecover = STATE.staminaRecover || 0.4; $("#val-rec").innerText = STATE.staminaRecover.toFixed(2);
+
+/* ----- Main loop ----- */
 function loop(){
   requestAnimationFrame(loop);
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  // background brightness: map darkness combined with brightness setting
+  const b = Math.max(0, Math.min(1, STATE.brightness));
+  // create a dark gradient that becomes slightly lighter with brightness
+  ctx.fillStyle = `rgba(${Math.floor(6 + b*20)}, ${Math.floor(6 + b*20)}, ${Math.floor(8 + b*20)}, 1)`;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // 이동
-  let speed=settings.walkSpeed;
-  if(keys['shift']||player.isRunning){ speed=settings.runSpeed; stamina-=0.8; } else stamina+=0.4;
-  if(stamina>maxStamina) stamina=maxStamina; if(stamina<0) stamina=0;
+  // movement
+  let speed = STATE.walkSpeed;
+  if(keys['shift'] || player.isRunning){ speed = STATE.runSpeed; stamina -= STATE.staminaDrain; } else stamina += STATE.staminaRecover;
+  stamina = Math.max(0, Math.min(maxStamina, stamina));
 
-  // 모바일 조이스틱
-  if(touchJoystick.active){
-    const mag=Math.sqrt(touchJoystick.dx**2+touchJoystick.dy**2);
-    const normX=touchJoystick.dx/mag||0;
-    const normY=touchJoystick.dy/mag||0;
-    let newX=player.x+normX*speed;
-    let newY=player.y+normY*speed;
-    if(!checkCollision(newX,player.y)) player.x=newX;
-    if(!checkCollision(player.x,newY)) player.y=newY;
+  // joystick movement (mobile)
+  if(touch.active){
+    const mag = Math.hypot(touch.dx, touch.dy) || 0.0001;
+    const nx = touch.dx / mag, ny = touch.dy / mag;
+    const newX = player.x + nx * speed;
+    const newY = player.y + ny * speed;
+    if(!checkCollision(newX, player.y)) player.x = newX;
+    if(!checkCollision(player.x, newY)) player.y = newY;
   }
 
-  // 키보드 이동
-  let newX=player.x, newY=player.y;
-  if(keys['w']){ newX+=Math.cos(player.angle)*speed; newY+=Math.sin(player.angle)*speed; }
-  if(keys['s']){ newX-=Math.cos(player.angle)*speed; newY-=Math.sin(player.angle)*speed; }
-  if(keys['a']){ newX+=Math.cos(player.angle-Math.PI/2)*speed; newY+=Math.sin(player.angle-Math.PI/2)*speed; }
-  if(keys['d']){ newX+=Math.cos(player.angle+Math.PI/2)*speed; newY+=Math.sin(player.angle+Math.PI/2)*speed; }
-  if(!checkCollision(newX,player.y)) player.x=newX;
-  if(!checkCollision(player.x,newY)) player.y=newY;
+  // keyboard WASD
+  let nx = player.x, ny = player.y;
+  if(keys['w']){ nx += Math.cos(player.angle) * speed; ny += Math.sin(player.angle) * speed; }
+  if(keys['s']){ nx -= Math.cos(player.angle) * speed; ny -= Math.sin(player.angle) * speed; }
+  if(keys['a']){ nx += Math.cos(player.angle - Math.PI/2) * speed; ny += Math.sin(player.angle - Math.PI/2) * speed; }
+  if(keys['d']){ nx += Math.cos(player.angle + Math.PI/2) * speed; ny += Math.sin(player.angle + Math.PI/2) * speed; }
+  if(!checkCollision(nx, player.y)) player.x = nx;
+  if(!checkCollision(player.x, ny)) player.y = ny;
 
-  // 점프/중력
-  if(player.isJumping){ player.vertVel+=0.5; player.height+=player.vertVel; if(player.height>0){ player.height=0; player.vertVel=0; player.isJumping=false; }}
-  if(player.isCrouch) player.height=20; else if(!player.isJumping) player.height=0;
+  // gravity / jump
+  if(player.isJumping){ player.vertVel += 0.5; player.height += player.vertVel; if(player.height > 0){ player.height = 0; player.vertVel = 0; player.isJumping = false; } }
+  player.height = player.isCrouch ? 20 : player.height;
 
+  // render rays (dark walls + texture)
+  ctx.lineWidth = Math.max(1, canvas.width / 1200);
   castRays();
 
-  // 스테미나
-  document.getElementById('staminaFill').style.width=(stamina/maxStamina*100)+'%';
+  // stamina UI
+  document.getElementById('staminaFill').style.width = (stamina / maxStamina * 100) + '%';
 }
 loop();
+
+/* initial hide panel on mobile to maximize view */
+if(window.innerWidth < 700) panel.style.display = 'none';
 </script>
 </body>
 </html>
