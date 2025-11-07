@@ -3,87 +3,100 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Backrooms FPS — Neon Dev UI</title>
+<title>Backrooms FPS — Mobile Touch v2.0</title>
 <style>
-  :root{
-    --bg:#050406;
-    --panel: rgba(6,6,10,0.65);
-    --neon: #7afcff;
-    --accent: #9b59ff;
-    --muted:#bdbdbd;
-    --white:#edf2f7;
-  }
-  html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-  canvas{display:block;width:100vw;height:100vh;}
-  /* UI panel (right) */
-  #settingsPanel{
-    position:fixed; right:18px; top:18px; width:360px; max-width:92vw; height:calc(100vh - 36px);
-    background: linear-gradient(180deg, rgba(10,10,12,0.85), rgba(8,8,10,0.7));
-    border:1px solid rgba(122,252,255,0.08);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 18px rgba(155,89,255,0.06) inset;
-    backdrop-filter: blur(8px);
-    border-radius:12px; padding:14px; color:var(--muted); display:flex; flex-direction:column;
-  }
-  #settingsHeader{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-  #settingsHeader h2{margin:0;color:var(--white);font-size:16px;letter-spacing:0.6px}
-  #settingsHeader p{margin:0;font-size:12px;color:var(--muted)}
-  .panel-scroll{overflow:auto;padding-right:6px}
-  .settingRow{display:flex;align-items:center;justify-content:space-between;padding:8px 6px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));}
-  .settingLeft{display:flex;flex-direction:column;gap:6px}
-  .settingName{color:var(--white);font-weight:600;font-size:13px}
-  .settingDesc{font-size:11px;color:#98a0a6}
-  .settingControl{display:flex;align-items:center;gap:8px}
-  .btnSmall{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:var(--neon);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow: 0 2px 10px rgba(0,0,0,0.6);cursor:pointer}
-  .valueBox{min-width:80px;text-align:center;color:var(--white);font-weight:700;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04))}
-  .footer{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .iotBtn{background:linear-gradient(90deg,var(--neon),var(--accent));color:#041018;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 6px 26px rgba(155,89,255,0.08)}
-  .smallText{font-size:12px;color:#9aa4ad}
-  /* Gear button */
-  #gearBtn{position:fixed;right:22px;bottom:18px;width:56px;height:56px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--neon),var(--accent));color:#041018;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 40px rgba(155,89,255,0.12)}
-  /* Touch buttons */
-  .touchButton{position:fixed; width:64px;height:64px;border-radius:50%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:var(--white); display:flex;align-items:center;justify-content:center; font-weight:800; user-select:none; touch-action:none}
-  #jumpBtn{right:20px;bottom:100px}
-  #crouchBtn{right:20px;bottom:180px}
-  #runBtn{right:20px;bottom:260px}
-  /* Stamina bar */
-  #staminaBar{position:fixed;left:18px;top:18px;width:240px;height:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04))}
-  #staminaFill{height:100%;background:linear-gradient(90deg,#2ff57a,#8be39c);width:100%}
-  /* responsive tweaks */
-  @media (max-width:700px){
-    #settingsPanel{width:92vw; right:4vw; top:6px; height:calc(60vh); border-radius:14px}
-    #gearBtn{right:6vw; bottom:8px}
-    .touchButton{width:56px;height:56px}
-    #staminaBar{left:10px;top:10px;width:40vw}
-  }
+:root{
+  --bg:#030205;
+  --panel: rgba(12,12,14,0.72);
+  --neon: #7afcff;
+  --accent: #9b59ff;
+  --muted:#9aa4ad;
+  --white:#edf2f7;
+  --danger:#ff6b6b;
+}
+html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:var(--white)}
+canvas{display:block;width:100vw;height:100vh;}
+/* settings panel (neon) */
+#settingsPanel{
+  position:fixed; right:18px; top:18px; width:360px; max-width:92vw; height:calc(100vh - 36px);
+  background: linear-gradient(180deg, rgba(10,10,12,0.88), rgba(8,8,10,0.74));
+  border:1px solid rgba(122,252,255,0.08);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 18px rgba(155,89,255,0.06) inset;
+  backdrop-filter: blur(8px);
+  border-radius:12px; padding:14px; color:var(--muted); display:flex; flex-direction:column; z-index:30;
+}
+#settingsHeader{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+#settingsHeader h2{margin:0;color:var(--white);font-size:16px;letter-spacing:0.6px}
+.panel-scroll{overflow:auto;padding-right:6px}
+.settingRow{display:flex;align-items:center;justify-content:space-between;padding:8px 6px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));}
+.settingLeft{display:flex;flex-direction:column;gap:6px}
+.settingName{color:var(--white);font-weight:700;font-size:13px}
+.settingDesc{font-size:11px;color:#98a0a6}
+.settingControl{display:flex;align-items:center;gap:8px}
+.btnSmall{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,0.03);color:var(--neon);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow: 0 2px 10px rgba(0,0,0,0.6);cursor:pointer}
+.valueBox{min-width:80px;text-align:center;color:var(--white);font-weight:700;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04))}
+.footer{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.iotBtn{background:linear-gradient(90deg,var(--neon),var(--accent));color:#041018;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;box-shadow:0 6px 26px rgba(155,89,255,0.08)}
+.smallText{font-size:12px;color:#9aa4ad}
+#gearBtn{position:fixed;right:22px;bottom:18px;width:56px;height:56px;border-radius:12px;border:none;background:linear-gradient(180deg,var(--neon),var(--accent));color:#041018;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 40px rgba(155,89,255,0.12);z-index:40}
+
+/* touch buttons (right bottom) */
+.touchButton{position:fixed;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:800;user-select:none;touch-action:none;z-index:20}
+#runBtn{right:20px;bottom:320px}
+#jumpBtn{right:20px;bottom:240px}
+#crouchBtn{right:20px;bottom:160px}
+
+/* movement pad (left bottom) */
+#movePad{position:fixed;left:16px;bottom:16px;width:200px;height:200px;border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(0,0,0,0.02));display:flex;align-items:center;justify-content:center;padding:12px;z-index:20}
+.moveBtn{width:64px;height:64px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);color:var(--white);display:flex;align-items:center;justify-content:center;font-weight:800;touch-action:none}
+.moveGrid{display:grid;grid-template-columns:64px 64px 64px;grid-template-rows:64px 64px 64px;gap:10px;}
+
+/* center dot removed intentionally */
+
+/* stamina bar */
+#staminaBar{position:fixed;left:18px;top:18px;width:240px;height:14px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));z-index:30}
+#staminaFill{height:100%;background:linear-gradient(90deg,#2ff57a,#8be39c);width:100%}
+
+/* responsive */
+@media (max-width:700px){
+  #settingsPanel{width:92vw; right:4vw; top:6px; height:60vh}
+  #gearBtn{right:6vw; bottom:8px}
+  .touchButton{width:56px;height:56px}
+  #movePad{width:170px;height:170px}
+  .moveGrid{grid-template-columns:56px 56px 56px;grid-template-rows:56px 56px 56px}
+  #runBtn{right:16px;bottom:260px}
+  #jumpBtn{right:16px;bottom:190px}
+  #crouchBtn{right:16px;bottom:120px}
+  #staminaBar{left:12px;top:12px;width:44vw}
+}
 </style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
 
-<!-- Neon Settings Panel -->
-<div id="settingsPanel" aria-hidden="false">
+<!-- Settings Panel -->
+<div id="settingsPanel" role="dialog" aria-label="Settings">
   <div id="settingsHeader">
     <div style="width:44px;height:44px;border-radius:8px;background:linear-gradient(90deg,var(--neon),var(--accent));display:flex;align-items:center;justify-content:center;color:#041018;font-weight:800">DEV</div>
     <div style="flex:1">
       <h2>Developer Settings</h2>
-      <p class="smallText">Real-time adjustments — changes apply instantly</p>
+      <p class="smallText">Tap + / − to adjust. Changes apply instantly.</p>
     </div>
     <div style="text-align:right">
       <div class="smallText">Mode: <strong style="color:var(--neon);">1st Person</strong></div>
-      <div class="smallText">Platform: Web</div>
     </div>
   </div>
 
-  <div class="panel-scroll" style="margin-top:6px; padding-right:6px;">
+  <div class="panel-scroll" style="margin-top:6px;">
     <!-- Walk Speed -->
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Walk Speed</div>
-        <div class="settingDesc">Normal walking speed (affects movement per frame)</div>
+        <div class="settingDesc">Normal movement speed</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="walk_speed_dec">−</button>
-        <div class="valueBox" id="val-walk">3.0</div>
+        <div class="valueBox" id="val-walk">3.00</div>
         <button class="btnSmall" data-action="walk_speed_inc">+</button>
       </div>
     </div>
@@ -92,11 +105,11 @@
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Run Speed</div>
-        <div class="settingDesc">Speed while running (consumes stamina)</div>
+        <div class="settingDesc">Speed while running (uses stamina)</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="run_speed_dec">−</button>
-        <div class="valueBox" id="val-run">6.0</div>
+        <div class="valueBox" id="val-run">6.00</div>
         <button class="btnSmall" data-action="run_speed_inc">+</button>
       </div>
     </div>
@@ -105,7 +118,7 @@
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Jump Strength</div>
-        <div class="settingDesc">Initial vertical velocity when pressing jump</div>
+        <div class="settingDesc">Initial upwards velocity when jumping</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="jump_dec">−</button>
@@ -117,8 +130,8 @@
     <!-- FOV -->
     <div class="settingRow">
       <div class="settingLeft">
-        <div class="settingName">FOV (Field of View)</div>
-        <div class="settingDesc">Narrow = claustrophobic; Wide = expansive</div>
+        <div class="settingName">FOV</div>
+        <div class="settingDesc">Field of view (degrees). Narrow = claustrophobic</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="fov_dec">−</button>
@@ -131,7 +144,7 @@
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">View Distance</div>
-        <div class="settingDesc">How far rays are cast (increase to see farther)</div>
+        <div class="settingDesc">How far rays are cast</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="viewdist_dec">−</button>
@@ -144,20 +157,20 @@
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Map Brightness</div>
-        <div class="settingDesc">Overall scene brightness (0 = pitch black)</div>
+        <div class="settingDesc">0 = pitch black; increase to reveal walls</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="bright_dec">−</button>
-        <div class="valueBox" id="val-bright">0.2</div>
+        <div class="valueBox" id="val-bright">0.20</div>
         <button class="btnSmall" data-action="bright_inc">+</button>
       </div>
     </div>
 
-    <!-- Wall Spawn Rate -->
+    <!-- Spawn Rate -->
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Wall Spawn Rate</div>
-        <div class="settingDesc">Probability of a tile becoming a wall (0~1)</div>
+        <div class="settingDesc">Tile wall probability (0.0 ~ 1.0)</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="spawn_dec">−</button>
@@ -166,7 +179,7 @@
       </div>
     </div>
 
-    <!-- Mouse / Touch Sensitivity -->
+    <!-- Sensitivity -->
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Look Sensitivity</div>
@@ -179,11 +192,11 @@
       </div>
     </div>
 
-    <!-- Stamina Drain -->
+    <!-- Stamina drain/recover -->
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Stamina Drain</div>
-        <div class="settingDesc">How fast stamina is consumed while running</div>
+        <div class="settingDesc">How fast stamina reduces while running</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="drain_dec">−</button>
@@ -192,11 +205,10 @@
       </div>
     </div>
 
-    <!-- Stamina Recover -->
     <div class="settingRow">
       <div class="settingLeft">
         <div class="settingName">Stamina Recover</div>
-        <div class="settingDesc">How fast stamina recovers when not running</div>
+        <div class="settingDesc">How fast stamina recovers</div>
       </div>
       <div class="settingControl">
         <button class="btnSmall" data-action="rec_dec">−</button>
@@ -209,36 +221,60 @@
 
   <div class="footer" style="margin-top:10px">
     <div style="display:flex;flex-direction:column">
-      <div class="smallText">Current Map:</div>
-      <div style="color:var(--neon);font-weight:700">Randomized Backroom</div>
+      <div class="smallText">Map</div>
+      <div style="color:var(--neon);font-weight:700">Random Backroom</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
       <button id="regenMap" class="iotBtn">Regenerate Map</button>
       <button id="closePanel" class="iotBtn" style="background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Gear toggle -->
+<!-- gear toggle -->
 <button id="gearBtn" title="Settings">⚙️</button>
 
-<!-- Touch controls -->
+<!-- stamina -->
 <div id="staminaBar"><div id="staminaFill"></div></div>
-<div id="jumpBtn" class="touchButton">J</div>
-<div id="crouchBtn" class="touchButton">C</div>
-<div id="runBtn" class="touchButton">R</div>
+
+<!-- right bottom controls -->
+<button id="runBtn" class="touchButton">Run</button>
+<button id="jumpBtn" class="touchButton">Jump</button>
+<button id="crouchBtn" class="touchButton">Crouch</button>
+
+<!-- left movement pad -->
+<div id="movePad">
+  <div class="moveGrid" id="moveGrid" style="pointer-events:none;">
+    <!-- grid positions:
+         [  , up,  ]
+         [left, down, right]
+         [  ,  ,  ]  (we'll leave corners blank)
+    -->
+    <div style="width:64px;height:64px;"></div>
+    <button class="moveBtn" id="btnUp" style="pointer-events:auto;">↑</button>
+    <div style="width:64px;height:64px;"></div>
+
+    <button class="moveBtn" id="btnLeft" style="pointer-events:auto;">←</button>
+    <button class="moveBtn" id="btnDown" style="pointer-events:auto;">↓</button>
+    <button class="moveBtn" id="btnRight" style="pointer-events:auto;">→</button>
+
+    <div style="width:64px;height:64px;"></div>
+    <div style="width:64px;height:64px;"></div>
+    <div style="width:64px;height:64px;"></div>
+  </div>
+</div>
 
 <script>
 /* =========================
-   Core game + UI wiring
+   Core game + UI code
    ========================= */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-function resizeCanvas(){ canvas.width = innerWidth; canvas.height = innerHeight; }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+window.addEventListener('resize', resize);
+resize();
 
-/* ----- Settings (centralized) ----- */
+/* STATE */
 const STATE = {
   walkSpeed: 3.0,
   runSpeed: 6.0,
@@ -252,88 +288,133 @@ const STATE = {
   staminaRecover: 0.4
 };
 
-/* ----- Map generation ----- */
-const TILE = 100;
-const MAP_W = 50, MAP_H = 50;
+/* map */
+const TILE = 100, MAP_W = 60, MAP_H = 60;
 let gameMap = [];
 function generateMap(){
-  gameMap=[]
+  gameMap = [];
   for(let y=0;y<MAP_H;y++){
-    const row=[]
+    const row=[];
     for(let x=0;x<MAP_W;x++){
-      if(x===0||y===0||x===MAP_W-1||y===MAP_H-1){ row.push(1); continue; }
-      row.push(Math.random() < STATE.spawnRate ? 1 : 0);
+      if(x===0||y===0||x===MAP_W-1||y===MAP_H-1) row.push(1);
+      else row.push(Math.random() < STATE.spawnRate ? 1 : 0);
     }
     gameMap.push(row);
   }
 }
 generateMap();
 
-/* ----- Player ----- */
-const player = { x:150, y:150, angle:0, height:0, vertVel:0, isCrouch:false, isRunning:false, isJumping:false };
-let stamina = 100; const maxStamina = 100;
+/* player */
+const player = { x: TILE*1.5, y: TILE*1.5, angle:0, pitch:0, height:0, vertVel:0, isCrouch:false, isRunning:false, isJumping:false };
+let stamina = 100, maxStamina = 100;
 
-/* ----- Input ----- */
+/* inputs */
 let keys = {};
-document.addEventListener('keydown', (e)=> keys[e.key.toLowerCase()] = true );
-document.addEventListener('keyup', (e)=> keys[e.key.toLowerCase()] = false );
+document.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+document.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 
-/* Pointer lock & mouse */
-canvas.onclick = ()=> { if(document.pointerLockElement!==canvas) canvas.requestPointerLock?.(); };
-document.addEventListener('mousemove', (e)=>{
-  if(document.pointerLockElement===canvas) player.angle += e.movementX * STATE.sensitivity;
+/* pointer lock / mouse look */
+canvas.onclick = ()=>{ if(document.pointerLockElement !== canvas) canvas.requestPointerLock?.(); };
+document.addEventListener('mousemove', e=>{
+  if(document.pointerLockElement === canvas){
+    player.angle += e.movementX * STATE.sensitivity;
+    // mouse up/down changes pitch
+    player.pitch = Math.max(-0.6, Math.min(0.6, player.pitch + e.movementY * -STATE.sensitivity * 0.8));
+  }
 });
 
-/* Touch joystick for movement (left half) and right-side look */
-let touch = { active:false, startX:0, startY:0, dx:0, dy:0 };
-canvas.addEventListener('touchstart', (ev)=>{
-  const t = ev.touches[0];
-  if(t.clientX < innerWidth/2){ touch.active=true; touch.startX=t.clientX; touch.startY=t.clientY; }
-});
-canvas.addEventListener('touchmove', (ev)=>{
+/* touch: left pad and right swipe */
+let touchLeft = { active:false, startX:0, startY:0, dx:0, dy:0 };
+let latestTouchRightX = null;
+canvas.addEventListener('touchstart', ev=>{
+  // prevent page scroll
   ev.preventDefault();
   const t = ev.touches[0];
-  if(t && touch.active){
-    touch.dx = t.clientX - touch.startX;
-    touch.dy = t.clientY - touch.startY;
-  } else if(t){
-    // right-side drag -> emulate look (use delta from touchmove event if available)
-    // mobile browsers don't provide movementX reliably; use simple diff
-    // store prev
-    if(typeof canvas._lastTouchX !== 'undefined'){
-      const dx = t.clientX - canvas._lastTouchX;
-      player.angle += dx * STATE.sensitivity * 1.6; // amplify for touch
-    }
-    canvas._lastTouchX = t.clientX;
+  if(t.clientX < innerWidth/2){
+    touchLeft.active = true; touchLeft.startX = t.clientX; touchLeft.startY = t.clientY; touchLeft.dx = 0; touchLeft.dy = 0;
+  } else {
+    latestTouchRightX = t.clientX;
   }
 }, {passive:false});
-canvas.addEventListener('touchend', (ev)=>{ touch.active=false; touch.dx=0; touch.dy=0; canvas._lastTouchX = undefined; });
 
-/* Touch buttons */
-const jumpBtn = document.getElementById('jumpBtn');
-const crouchBtn = document.getElementById('crouchBtn');
-const runBtn = document.getElementById('runBtn');
-jumpBtn.addEventListener('touchstart', ()=>{ if(!player.isJumping){ player.vertVel = -STATE.jumpStrength; player.isJumping = true; } });
-crouchBtn.addEventListener('touchstart', ()=> player.isCrouch = true );
-crouchBtn.addEventListener('touchend', ()=> player.isCrouch = false );
-runBtn.addEventListener('touchstart', ()=> player.isRunning = true );
-runBtn.addEventListener('touchend', ()=> player.isRunning = false );
+canvas.addEventListener('touchmove', ev=>{
+  ev.preventDefault();
+  const t = ev.touches[0];
+  if(!t) return;
+  if(t.clientX < innerWidth/2 && touchLeft.active){
+    touchLeft.dx = t.clientX - touchLeft.startX;
+    touchLeft.dy = t.clientY - touchLeft.startY;
+  } else {
+    // right-side swipe -> look
+    if(latestTouchRightX !== null){
+      const dx = t.clientX - latestTouchRightX;
+      player.angle += dx * STATE.sensitivity * 1.8; // horizontal rotates
+      // use dy to adjust pitch
+      // approximate by storing lastY
+      if(typeof canvas._lastTouchY !== 'undefined'){
+        const dy = t.clientY - canvas._lastTouchY;
+        player.pitch = Math.max(-0.6, Math.min(0.6, player.pitch + dy * -STATE.sensitivity * 1.2));
+      }
+      canvas._lastTouchY = t.clientY;
+    }
+    latestTouchRightX = t.clientX;
+  }
+}, {passive:false});
 
-/* ----- Collision ----- */
+canvas.addEventListener('touchend', ev=>{
+  ev.preventDefault();
+  touchLeft.active = false; touchLeft.dx = 0; touchLeft.dy = 0; latestTouchRightX = null; canvas._lastTouchY = undefined;
+});
+
+/* on-screen movement buttons (WASD) */
+const btnUp = document.getElementById('btnUp'), btnLeft = document.getElementById('btnLeft'), btnDown = document.getElementById('btnDown'), btnRight = document.getElementById('btnRight');
+function bindTouchHold(el, keyName){
+  let id = null;
+  const start = (e)=>{
+    e.preventDefault();
+    keys[keyName] = true;
+  };
+  const end = (e)=>{
+    e.preventDefault();
+    keys[keyName] = false;
+  };
+  el.addEventListener('touchstart', start, {passive:false});
+  el.addEventListener('mousedown', start);
+  el.addEventListener('touchend', end);
+  el.addEventListener('mouseup', end);
+  el.addEventListener('mouseleave', end);
+}
+bindTouchHold(btnUp, 'w'); bindTouchHold(btnLeft, 'a'); bindTouchHold(btnDown, 's'); bindTouchHold(btnRight, 'd');
+
+/* right bottom buttons */
+const runBtn = document.getElementById('runBtn'), jumpBtn = document.getElementById('jumpBtn'), crouchBtn = document.getElementById('crouchBtn');
+runBtn.addEventListener('touchstart', e=>{ e.preventDefault(); player.isRunning = true; }, {passive:false});
+runBtn.addEventListener('touchend', e=>{ e.preventDefault(); player.isRunning = false; }, {passive:false});
+runBtn.addEventListener('mousedown', ()=> player.isRunning = true); runBtn.addEventListener('mouseup', ()=> player.isRunning = false);
+
+jumpBtn.addEventListener('touchstart', e=>{ e.preventDefault(); if(!player.isJumping){ player.vertVel = -STATE.jumpStrength; player.isJumping = true; } }, {passive:false});
+jumpBtn.addEventListener('mousedown', ()=>{ if(!player.isJumping){ player.vertVel = -STATE.jumpStrength; player.isJumping = true; } });
+
+crouchBtn.addEventListener('touchstart', e=>{ e.preventDefault(); player.isCrouch = true; }, {passive:false});
+crouchBtn.addEventListener('touchend', e=>{ e.preventDefault(); player.isCrouch = false; }, {passive:false});
+crouchBtn.addEventListener('mousedown', ()=> player.isCrouch = true); crouchBtn.addEventListener('mouseup', ()=> player.isCrouch = false);
+
+/* check collision */
 function checkCollision(x,y){
-  const mx = Math.floor(x/TILE), my = Math.floor(y/TILE);
+  const mx = Math.floor(x / TILE), my = Math.floor(y / TILE);
   if(mx<0||my<0||mx>=MAP_W||my>=MAP_H) return true;
   return gameMap[my][mx] === 1;
 }
 
-/* ----- Raycast render with brightness & viewDist ---- */
+/* raycast render with brightness & pitch shift */
 function castRays(){
   const numRays = 140;
   const fovRad = STATE.fovDeg * Math.PI/180;
   const half = fovRad/2;
-  const delta = fovRad/numRays;
+  const delta = fovRad / numRays;
   const start = player.angle - half;
   const maxDepth = STATE.viewDist;
+  ctx.lineWidth = Math.max(1, canvas.width / 1400);
   for(let r=0;r<numRays;r++){
     const ang = start + r*delta;
     for(let depth=1; depth<maxDepth; depth+=0.6){
@@ -343,14 +424,16 @@ function castRays(){
       if(mx<0||my<0||mx>=MAP_W||my>=MAP_H) break;
       if(gameMap[my][mx] === 1){
         const wallH = Math.min( (innerHeight*1.6) / (depth*0.02 + 0.0001) , innerHeight);
-        // shade via brightness + depth
-        const base = Math.max(8, Math.floor( (STATE.brightness*180) - depth*0.06 ));
+        // brightness base + small texture noise
+        const base = Math.max(6, Math.floor((STATE.brightness*200) - depth*0.06));
         const shade = Math.max(6, Math.min(255, base + ((mx+my)%3)*6 + Math.floor(Math.random()*6) ));
         ctx.strokeStyle = `rgb(${shade},${shade},${shade})`;
         ctx.beginPath();
         const x = r*(canvas.width/numRays);
-        ctx.moveTo(x, canvas.height/2 - wallH/2 - player.height);
-        ctx.lineTo(x, canvas.height/2 + wallH/2 - player.height);
+        // apply pitch offset: pitch moves center up/down
+        const pitchOffset = player.pitch * canvas.height * 0.18;
+        ctx.moveTo(x, canvas.height/2 - wallH/2 - player.height + pitchOffset);
+        ctx.lineTo(x, canvas.height/2 + wallH/2 - player.height + pitchOffset);
         ctx.stroke();
         break;
       }
@@ -358,7 +441,7 @@ function castRays(){
   }
 }
 
-/* ----- UI wiring: buttons +/- and values ----- */
+/* UI wiring for settings panel */
 function $(sel){ return document.querySelector(sel); }
 function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
 
@@ -394,24 +477,15 @@ const mappings = {
   "rec_dec": ()=> { STATE.staminaRecover = Math.max(0.01, +(STATE.staminaRecover - 0.05).toFixed(2)); $("#val-rec").innerText = STATE.staminaRecover.toFixed(2); },
 };
 
-/* attach handlers */
 $all('.btnSmall').forEach(btn=>{
   const action = btn.dataset.action;
   btn.addEventListener('click', ()=>{
-    // map dataset like "walk_speed_inc" -> mapping key "walk_speed_inc" (convert underscore)
     const key = action.replace(/-/g,'_');
-    // normalize naming differences (our mapping uses underscores and names like walk_speed_inc)
-    const mapKey = key;
-    if(mappings[mapKey]) mappings[mapKey]();
-    // Also copy some values into STATE for legacy names
-    STATE.sensitivity = STATE.sensitivity || 0.003;
-    // apply some mirrored values
-    STATE.walkSpeed = STATE.walkSpeed || 3.0;
-    STATE.runSpeed = STATE.runSpeed || 6.0;
+    if(mappings[key]) mappings[key]();
   });
 });
 
-/* gear open/close */
+/* gear toggle */
 const panel = document.getElementById('settingsPanel');
 const gear = document.getElementById('gearBtn');
 gear.addEventListener('click', ()=> {
@@ -421,45 +495,52 @@ gear.addEventListener('click', ()=> {
 document.getElementById('closePanel').addEventListener('click', ()=> panel.style.display='none');
 document.getElementById('regenMap').addEventListener('click', ()=> generateMap());
 
-/* initialize display values */
+/* init ui values */
 $("#val-walk").innerText = STATE.walkSpeed.toFixed(2);
 $("#val-run").innerText = STATE.runSpeed.toFixed(2);
 $("#val-jump").innerText = STATE.jumpStrength.toFixed(2);
 $("#val-fov").innerText = STATE.fovDeg + "°";
 $("#val-viewdist").innerText = STATE.viewDist;
-$("#val-bright").innerText = (STATE.brightness||0.2).toFixed(2);
-STATE.spawnRate = STATE.spawnRate || STATE.spawnRate === 0 ? STATE.spawnRate : 0.2;
+$("#val-bright").innerText = STATE.brightness.toFixed(2);
+STATE.spawnRate = STATE.spawnRate || 0.2;
 $("#val-spawn").innerText = STATE.spawnRate.toFixed(2);
-STATE.sensitivity = STATE.sensitivity || 0.003;
 $("#val-sens").innerText = STATE.sensitivity.toFixed(3);
-STATE.staminaDrain = STATE.staminaDrain || 0.8; $("#val-drain").innerText = STATE.staminaDrain.toFixed(2);
-STATE.staminaRecover = STATE.staminaRecover || 0.4; $("#val-rec").innerText = STATE.staminaRecover.toFixed(2);
+$("#val-drain").innerText = STATE.staminaDrain.toFixed(2);
+$("#val-rec").innerText = STATE.staminaRecover.toFixed(2);
 
-/* ----- Main loop ----- */
+/* main loop */
 function loop(){
   requestAnimationFrame(loop);
-  // background brightness: map darkness combined with brightness setting
+
+  // background darkness influenced by brightness
   const b = Math.max(0, Math.min(1, STATE.brightness));
-  // create a dark gradient that becomes slightly lighter with brightness
-  ctx.fillStyle = `rgba(${Math.floor(6 + b*20)}, ${Math.floor(6 + b*20)}, ${Math.floor(8 + b*20)}, 1)`;
+  ctx.fillStyle = `rgb(${6 + Math.floor(b*20)}, ${6 + Math.floor(b*20)}, ${8 + Math.floor(b*20)})`;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // movement
+  // movement speed + stamina
   let speed = STATE.walkSpeed;
-  if(keys['shift'] || player.isRunning){ speed = STATE.runSpeed; stamina -= STATE.staminaDrain; } else stamina += STATE.staminaRecover;
+  if(keys['shift'] || player.isRunning){
+    if(stamina > 0){ speed = STATE.runSpeed; stamina -= STATE.staminaDrain; }
+    else player.isRunning = false;
+  } else {
+    stamina += STATE.staminaRecover;
+  }
   stamina = Math.max(0, Math.min(maxStamina, stamina));
 
-  // joystick movement (mobile)
-  if(touch.active){
-    const mag = Math.hypot(touch.dx, touch.dy) || 0.0001;
-    const nx = touch.dx / mag, ny = touch.dy / mag;
-    const newX = player.x + nx * speed;
-    const newY = player.y + ny * speed;
+  // touch left joystick approximate
+  if(touchLeft.active){
+    const mag = Math.hypot(touchLeft.dx, touchLeft.dy) || 1;
+    const nx = touchLeft.dx / mag, ny = touchLeft.dy / mag;
+    // map joystick dy to forward/back relative to player angle (invert Y because dragging down is positive dy)
+    const forward = -ny;
+    const side = nx;
+    const newX = player.x + (Math.cos(player.angle) * forward + Math.cos(player.angle + Math.PI/2) * side) * speed;
+    const newY = player.y + (Math.sin(player.angle) * forward + Math.sin(player.angle + Math.PI/2) * side) * speed;
     if(!checkCollision(newX, player.y)) player.x = newX;
     if(!checkCollision(player.x, newY)) player.y = newY;
   }
 
-  // keyboard WASD
+  // keyboard movement (WASD)
   let nx = player.x, ny = player.y;
   if(keys['w']){ nx += Math.cos(player.angle) * speed; ny += Math.sin(player.angle) * speed; }
   if(keys['s']){ nx -= Math.cos(player.angle) * speed; ny -= Math.sin(player.angle) * speed; }
@@ -468,12 +549,11 @@ function loop(){
   if(!checkCollision(nx, player.y)) player.x = nx;
   if(!checkCollision(player.x, ny)) player.y = ny;
 
-  // gravity / jump
-  if(player.isJumping){ player.vertVel += 0.5; player.height += player.vertVel; if(player.height > 0){ player.height = 0; player.vertVel = 0; player.isJumping = false; } }
+  // jump/gravity and crouch
+  if(player.isJumping){ player.vertVel += 0.6; player.height += player.vertVel; if(player.height > 0){ player.height = 0; player.vertVel = 0; player.isJumping = false; } }
   player.height = player.isCrouch ? 20 : player.height;
 
-  // render rays (dark walls + texture)
-  ctx.lineWidth = Math.max(1, canvas.width / 1200);
+  // render rays with player.pitch effect
   castRays();
 
   // stamina UI
@@ -481,7 +561,7 @@ function loop(){
 }
 loop();
 
-/* initial hide panel on mobile to maximize view */
+/* hide panel on small screens initially */
 if(window.innerWidth < 700) panel.style.display = 'none';
 </script>
 </body>
